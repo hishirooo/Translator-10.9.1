@@ -231,7 +231,7 @@ export const ApiKeyPoolModal: React.FC<ApiKeyPoolModalProps> = ({ isOpen, onClos
                         <QuotaBar
                             key={model.id}
                             modelName={model.name}
-                            current={0}
+                            current={keyData.modelRequestCounts?.[model.id] || 0}
                             limit={model.rpdLimit}
                             color="cyan"
                         />
@@ -244,7 +244,7 @@ export const ApiKeyPoolModal: React.FC<ApiKeyPoolModalProps> = ({ isOpen, onClos
                         <QuotaBar
                             key={model.id}
                             modelName={model.name}
-                            current={0}
+                            current={keyData.modelRequestCounts?.[model.id] || 0}
                             limit={model.rpdLimit}
                             color="magenta"
                         />

@@ -11,6 +11,7 @@ export interface PoolKey {
     isAccountKey: boolean;
     rateLimitedUntil: number; // timestamp khi hết rate limit
     requestCount: number;
+    modelRequestCounts: Record<string, number>; // Per-model tracking: { "gemini-3-flash-preview": 5, ... }
     lastUsed: number;
     errorCount: number;
     // Computed status for UI
@@ -81,6 +82,7 @@ class ApiKeyPool {
                     isAccountKey: true,
                     rateLimitedUntil: 0,
                     requestCount: 0,
+                    modelRequestCounts: {},
                     lastUsed: 0,
                     errorCount: 0
                 });
@@ -101,12 +103,13 @@ class ApiKeyPool {
             if (stored) {
                 const data = JSON.parse(stored);
                 this.state.poolKeys = data.poolKeys || [];
-                // Reset rate limits nếu đã hết hạn
+                // Reset rate limits nếu đã hết hạn + ensure modelRequestCounts exists
                 const now = Date.now();
                 this.state.poolKeys.forEach(k => {
                     if (k.rateLimitedUntil && k.rateLimitedUntil < now) {
                         k.rateLimitedUntil = 0;
                     }
+                    if (!k.modelRequestCounts) k.modelRequestCounts = {};
                 });
             }
         } catch (e) {
@@ -188,6 +191,7 @@ class ApiKeyPool {
                 isAccountKey: true,
                 rateLimitedUntil: 0,
                 requestCount: 0,
+                modelRequestCounts: {},
                 lastUsed: 0,
                 errorCount: 0
             };
@@ -214,11 +218,17 @@ class ApiKeyPool {
 
     /**
      * Ghi nhận request thành công
+     * @param key - API key string
+     * @param modelId - Model ID used for this request (for per-model tracking)
      */
-    recordSuccess(key: string) {
+    recordSuccess(key: string, modelId?: string) {
         const poolKey = this.state.poolKeys.find(k => k.key === key);
         if (poolKey) {
             poolKey.requestCount++;
+            if (modelId) {
+                if (!poolKey.modelRequestCounts) poolKey.modelRequestCounts = {};
+                poolKey.modelRequestCounts[modelId] = (poolKey.modelRequestCounts[modelId] || 0) + 1;
+            }
             poolKey.lastUsed = Date.now();
             poolKey.errorCount = 0; // Reset error count on success
             this.activeKeyId = poolKey.id; // Mark as active
@@ -273,6 +283,7 @@ class ApiKeyPool {
             isAccountKey: false,
             rateLimitedUntil: 0,
             requestCount: 0,
+            modelRequestCounts: {},
             lastUsed: 0,
             errorCount: 0
         });
@@ -383,6 +394,8 @@ class ApiKeyPool {
         this.state.poolKeys.forEach(k => {
             k.rateLimitedUntil = 0;
             k.errorCount = 0;
+            k.requestCount = 0;
+            k.modelRequestCounts = {};
         });
         this.saveToStorage();
     }
