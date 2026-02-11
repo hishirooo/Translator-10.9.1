@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
-import { 
-    StartOptionsModal, GuideModal, SmartStartModal, NameAnalysisModal, 
-    PasteModal, FindReplaceModal, ConfirmationModal, ImportModal, 
+import {
+    StartOptionsModal, GuideModal, SmartStartModal, NameAnalysisModal,
+    PasteModal, FindReplaceModal, ConfirmationModal, ImportModal,
     ChangelogModal, LogModal
 } from './Modals';
 import { SplitterModal } from './SplitterModal';
@@ -45,12 +45,12 @@ interface ModalManagerProps {
     setEditingFileId: (v: string | null) => void;
     showRetranslateModal: boolean;
     setShowRetranslateModal: (v: boolean) => void;
-    
+
     // EPUB Preview
     showEpubModal: boolean;
     setShowEpubModal: (v: boolean) => void;
     handleEpubConfirm: (info: StoryInfo, cover: File | null) => void;
-    
+
     // Logs
     showLogs: boolean;
     setShowLogs: (v: boolean) => void;
@@ -97,6 +97,7 @@ interface ModalManagerProps {
     setCoverImage: (v: File | null) => void;
     files: FileItem[];
     saveEditor: (id: string, content: string) => void;
+    saveRawEditor: (id: string, newRawContent: string) => void;
     dictionary: string;
     promptTemplate: string;
     addToast: (msg: string, type: any) => void;
@@ -106,7 +107,7 @@ interface ModalManagerProps {
 }
 
 export const ModalManager: React.FC<ModalManagerProps> = (props) => {
-    
+
     const [retranslateKeepOld, setRetranslateKeepOld] = useState(true);
 
     const onAddToGlossary = (raw: string, edit: string) => {
@@ -116,7 +117,7 @@ export const ModalManager: React.FC<ModalManagerProps> = (props) => {
     };
 
     const handleReplaceAllInEditor = (find: string, replace: string) => {
-        if(props.editingFileId) {
+        if (props.editingFileId) {
             props.handleFindReplaceInFile(props.editingFileId, find, replace);
         }
     };
@@ -139,11 +140,11 @@ export const ModalManager: React.FC<ModalManagerProps> = (props) => {
             <LogModal isOpen={props.showLogs} onClose={() => props.setShowLogs(false)} logs={props.systemLogs} clearLogs={props.clearLogs} />
             <EpubPreviewModal isOpen={props.showEpubModal} onClose={() => props.setShowEpubModal(false)} onConfirm={props.handleEpubConfirm} storyInfo={props.storyInfo} coverImage={props.coverImage} totalFiles={props.files.length} />
             <PromptDesignerModal isOpen={props.showPromptDesigner} onClose={() => props.setShowPromptDesigner(false)} onConfirm={props.handlePromptDesignerConfirm} storyInfo={props.storyInfo} setStoryInfo={props.setStoryInfo} selectedTemplateKey={props.selectedTemplateKey} setSelectedTemplateKey={props.setSelectedTemplateKey} isOptimizing={props.isOptimizingPrompt} />
-            
+
             {/* NEW AUTOMATION MODAL */}
-            <AutomationModal 
-                isOpen={props.showAutomationModal} 
-                onClose={() => props.setShowAutomationModal(false)} 
+            <AutomationModal
+                isOpen={props.showAutomationModal}
+                onClose={() => props.setShowAutomationModal(false)}
                 onStart={props.handleAutomationStart}
                 onStop={props.handleAutomationStop} // Pass the stop handler
                 isRunning={props.automationState.isRunning}
@@ -151,14 +152,14 @@ export const ModalManager: React.FC<ModalManagerProps> = (props) => {
                 countdown={props.automationState.countdown}
                 totalSteps={props.automationState.totalSteps}
                 stepStatus={props.automationState.stepStatus}
-                initialConfig={props.automationInitialConfig} 
+                initialConfig={props.automationInitialConfig}
             />
 
-            {props.showRetranslateModal && ( 
-                <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"> 
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200"> 
-                        <div className="p-6"> 
-                            <h3 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2"><RefreshCw className="w-5 h-5 text-indigo-500" /> Dịch lại {props.selectedCount} chương</h3> 
+            {props.showRetranslateModal && (
+                <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-6">
+                            <h3 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2"><RefreshCw className="w-5 h-5 text-indigo-500" /> Dịch lại {props.selectedCount} chương</h3>
                             <label className="flex items-start gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer mb-4 hover:bg-slate-100 transition-colors">
                                 <input type="checkbox" checked={retranslateKeepOld} onChange={e => setRetranslateKeepOld(e.target.checked)} className="mt-1 w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500" />
                                 <div className="text-xs">
@@ -178,14 +179,14 @@ export const ModalManager: React.FC<ModalManagerProps> = (props) => {
                                     <div className="p-1 bg-white rounded-lg shadow-sm"><Sparkles className="w-4 h-4" /></div> Pro Mode (Chất lượng cao)
                                 </button>
                             </div>
-                            <button onClick={() => props.setShowRetranslateModal(false)} className="w-full mt-4 py-2 text-xs font-bold text-slate-400 hover:text-slate-600"> Hủy bỏ </button> 
-                        </div> 
-                    </div> 
-                </div> 
+                            <button onClick={() => props.setShowRetranslateModal(false)} className="w-full mt-4 py-2 text-xs font-bold text-slate-400 hover:text-slate-600"> Hủy bỏ </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {props.editingFileId && editingFile && (
-                <EditorModal file={editingFile} onClose={() => props.setEditingFileId(null)} onSave={props.saveEditor} storyInfoContext={props.storyInfo.contextNotes || ""} dictionary={props.dictionary} promptTemplate={props.promptTemplate} onAddToGlossary={onAddToGlossary} onReplaceAll={handleReplaceAllInEditor} addToast={props.addToast} genres={props.storyInfo.genres} />
+                <EditorModal file={editingFile} onClose={() => props.setEditingFileId(null)} onSave={props.saveEditor} onSaveRaw={props.saveRawEditor} storyInfoContext={props.storyInfo.contextNotes || ""} dictionary={props.dictionary} promptTemplate={props.promptTemplate} onAddToGlossary={onAddToGlossary} onReplaceAll={handleReplaceAllInEditor} addToast={props.addToast} genres={props.storyInfo.genres} />
             )}
         </>
     );

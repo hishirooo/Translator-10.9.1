@@ -1,17 +1,17 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-    X, Search, Zap, Activity, Sparkles, GraduationCap, Hammer, LifeBuoy, Split, 
-    Microscope, Globe, Tags, Users, Palette, Sword, Book, ImageIcon, Upload, 
-    Clipboard, ArrowRight, Layers, AlertCircle, Loader2, CheckCircle, AlertTriangle, 
+import {
+    X, Search, Zap, Activity, Sparkles, GraduationCap, Hammer, LifeBuoy, Split,
+    Microscope, Globe, Tags, Users, Palette, Sword, Book, ImageIcon, Upload,
+    Clipboard, ArrowRight, Layers, AlertCircle, Loader2, CheckCircle, AlertTriangle,
     Info, Clock, Check, FileText, FileUp, Download, Eye, EyeOff, Terminal, Eraser,
     History, GitCommit, Layout, Replace, Trash2, Save, Brain, ChevronRight, PlayCircle, BookOpen, Feather, Bot, ListFilter, RefreshCw, Wand2, ShieldCheck, Wrench, Scale, Key, Plus,
     HelpCircle, Settings, Play
 } from 'lucide-react';
 import { StoryInfo, FileItem, FileStatus, TranslationTier, Toast, LogEntry } from '../types';
-import { 
-    AVAILABLE_LANGUAGES, AVAILABLE_GENRES, AVAILABLE_PERSONALITIES, 
-    AVAILABLE_SETTINGS, AVAILABLE_FLOWS, DEFAULT_PROMPT 
+import {
+    AVAILABLE_LANGUAGES, AVAILABLE_GENRES, AVAILABLE_PERSONALITIES,
+    AVAILABLE_SETTINGS, AVAILABLE_FLOWS, DEFAULT_PROMPT
 } from '../constants';
 import { CHANGELOG_DATA } from '../changelog';
 
@@ -52,7 +52,7 @@ const AnalysisSkeleton = () => {
                     ))}
                 </div>
             </div>
-            
+
             {/* Progress Simulation */}
             <div className="pt-4 border-t border-slate-100">
                 <div className="flex justify-between mb-2">
@@ -89,9 +89,9 @@ export const LoadingModal: React.FC<LoadingModalProps> = ({ isOpen, progress }) 
                 </div>
                 <div className="flex justify-between w-full text-xs font-bold text-slate-400">
                     {progress.total === 100 ? (
-                        <span>{Math.round(progress.current)}%</span> 
+                        <span>{Math.round(progress.current)}%</span>
                     ) : (
-                        <span>{progress.current} / {progress.total}</span> 
+                        <span>{progress.current} / {progress.total}</span>
                     )}
                     <span>{percent}%</span>
                 </div>
@@ -140,22 +140,22 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, logs, clear
 };
 
 export interface TagInputProps { label: string; icon: React.ReactNode; options: string[]; selected: string[]; onChange: (selected: string[]) => void; placeholder?: string; }
-export const TagInput: React.FC<TagInputProps> = ({ label, icon, options, selected, onChange, placeholder }) => { 
-    const [inputValue, setInputValue] = useState(''); 
-    const [showOptions, setShowOptions] = useState(false); 
-    const containerRef = useRef<HTMLDivElement>(null); 
-    const handleAdd = (val: string) => { 
+export const TagInput: React.FC<TagInputProps> = ({ label, icon, options, selected, onChange, placeholder }) => {
+    const [inputValue, setInputValue] = useState('');
+    const [showOptions, setShowOptions] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const handleAdd = (val: string) => {
         const values = val.split(/[,;]+/).map(v => v.trim()).filter(v => v);
         let newSelected = [...selected];
         values.forEach(v => { if (v && !newSelected.includes(v)) newSelected.push(v); });
         if (newSelected.length !== selected.length) onChange(newSelected);
-        setInputValue(''); setShowOptions(false); 
-    }; 
-    const handleRemove = (val: string) => { onChange(selected.filter(i => i !== val)); }; 
-    const handleKeyDown = (e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); handleAdd(inputValue); } }; 
-    useEffect(() => { const handleClickOutside = (event: MouseEvent) => { if (containerRef.current && !containerRef.current.contains(event.target as Node)) setShowOptions(false); }; document.addEventListener('mousedown', handleClickOutside); return () => document.removeEventListener('mousedown', handleClickOutside); }, []); 
-    const filteredOptions = options.filter(opt => !selected.includes(opt) && opt.toLowerCase().includes(inputValue.toLowerCase())); 
-    return ( <div className="space-y-1.5 relative" ref={containerRef}> <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5"> {icon} {label} </label> <div className="min-h-[38px] px-2 py-1.5 bg-white border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-sky-200 focus-within:border-sky-300 transition-all flex flex-wrap gap-1.5 shadow-sm"> {selected.map(tag => ( <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md text-[10px] font-bold border border-slate-200"> {tag} <button onClick={() => handleRemove(tag)} className="hover:text-rose-500"><X className="w-3 h-3" /></button> </span> ))} <input type="text" className="flex-1 min-w-[60px] bg-transparent outline-none text-xs py-0.5" placeholder={selected.length === 0 ? placeholder : ""} value={inputValue} onChange={e => { setInputValue(e.target.value); setShowOptions(true); }} onFocus={() => setShowOptions(true)} onKeyDown={handleKeyDown} /> </div> {showOptions && (inputValue || filteredOptions.length > 0) && ( <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar p-1"> {filteredOptions.length > 0 ? ( filteredOptions.map(opt => ( <button key={opt} onClick={() => handleAdd(opt)} className="w-full text-left px-3 py-1.5 text-xs text-slate-600 hover:bg-sky-50 hover:text-sky-700 rounded-lg transition-colors" > {opt} </button> )) ) : ( inputValue && ( <button onClick={() => handleAdd(inputValue)} className="w-full text-left px-3 py-1.5 text-xs text-sky-600 hover:bg-sky-50 rounded-lg font-bold"> Thêm mới "{inputValue}" </button> ) )} </div> )} </div> ); 
+        setInputValue(''); setShowOptions(false);
+    };
+    const handleRemove = (val: string) => { onChange(selected.filter(i => i !== val)); };
+    const handleKeyDown = (e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); handleAdd(inputValue); } };
+    useEffect(() => { const handleClickOutside = (event: MouseEvent) => { if (containerRef.current && !containerRef.current.contains(event.target as Node)) setShowOptions(false); }; document.addEventListener('mousedown', handleClickOutside); return () => document.removeEventListener('mousedown', handleClickOutside); }, []);
+    const filteredOptions = options.filter(opt => !selected.includes(opt) && opt.toLowerCase().includes(inputValue.toLowerCase()));
+    return (<div className="space-y-1.5 relative" ref={containerRef}> <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5"> {icon} {label} </label> <div className="min-h-[38px] px-2 py-1.5 bg-white border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-sky-200 focus-within:border-sky-300 transition-all flex flex-wrap gap-1.5 shadow-sm"> {selected.map(tag => (<span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md text-[10px] font-bold border border-slate-200"> {tag} <button onClick={() => handleRemove(tag)} className="hover:text-rose-500"><X className="w-3 h-3" /></button> </span>))} <input type="text" className="flex-1 min-w-[60px] bg-transparent outline-none text-xs py-0.5" placeholder={selected.length === 0 ? placeholder : ""} value={inputValue} onChange={e => { setInputValue(e.target.value); setShowOptions(true); }} onFocus={() => setShowOptions(true)} onKeyDown={handleKeyDown} /> </div> {showOptions && (inputValue || filteredOptions.length > 0) && (<div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar p-1"> {filteredOptions.length > 0 ? (filteredOptions.map(opt => (<button key={opt} onClick={() => handleAdd(opt)} className="w-full text-left px-3 py-1.5 text-xs text-slate-600 hover:bg-sky-50 hover:text-sky-700 rounded-lg transition-colors" > {opt} </button>))) : (inputValue && (<button onClick={() => handleAdd(inputValue)} className="w-full text-left px-3 py-1.5 text-xs text-sky-600 hover:bg-sky-50 rounded-lg font-bold"> Thêm mới "{inputValue}" </button>))} </div>)} </div>);
 };
 
 export interface StartOptionsModalProps { isOpen: boolean; onClose: () => void; onConfirm: (tier: TranslationTier) => void; isSmartMode?: boolean; }
@@ -193,42 +193,42 @@ export const StartOptionsModal: React.FC<StartOptionsModalProps> = ({ isOpen, on
 };
 
 export interface GuideModalProps { isOpen: boolean; onClose: () => void; }
-export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => { 
-    const [activeTab, setActiveTab] = useState<'intro' | 'flow' | 'features' | 'faq'>('intro'); 
-    if (!isOpen) return null; 
-    
-    return ( 
-        <div className="fixed inset-0 z-[160] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"> 
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-white/40 ring-1 ring-black/50"> 
-                
+export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
+    const [activeTab, setActiveTab] = useState<'intro' | 'flow' | 'features' | 'faq'>('intro');
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-[160] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-white/40 ring-1 ring-black/50">
+
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-blue-50 to-indigo-50"> 
-                    <div className="flex items-center gap-3"> 
-                        <div className="p-2 bg-white rounded-xl shadow-sm text-blue-600"><GraduationCap className="w-6 h-6" /></div> 
-                        <div> <h3 className="font-display font-bold text-lg text-slate-800">Hướng Dẫn Sử Dụng (Dành Cho Người Mới)</h3> </div> 
-                    </div> 
-                    <button onClick={onClose} className="p-2 hover:bg-white rounded-full text-slate-400 hover:text-slate-600 transition-colors"><X className="w-5 h-5" /></button> 
-                </div> 
-                
+                <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-blue-50 to-indigo-50">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-white rounded-xl shadow-sm text-blue-600"><GraduationCap className="w-6 h-6" /></div>
+                        <div> <h3 className="font-display font-bold text-lg text-slate-800">Hướng Dẫn Sử Dụng (Dành Cho Người Mới)</h3> </div>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-white rounded-full text-slate-400 hover:text-slate-600 transition-colors"><X className="w-5 h-5" /></button>
+                </div>
+
                 {/* Tabs */}
-                <div className="flex border-b border-slate-100 bg-white overflow-x-auto no-scrollbar shrink-0"> 
+                <div className="flex border-b border-slate-100 bg-white overflow-x-auto no-scrollbar shrink-0">
                     <button onClick={() => setActiveTab('intro')} className={`flex-1 min-w-[120px] py-4 text-sm font-bold border-b-2 transition-all flex items-center justify-center gap-2 ${activeTab === 'intro' ? 'border-sky-500 text-sky-600 bg-sky-50/30' : 'border-transparent text-slate-500 hover:bg-slate-50'}`}>
-                        <Info className="w-4 h-4"/> Tổng Quan
-                    </button> 
+                        <Info className="w-4 h-4" /> Tổng Quan
+                    </button>
                     <button onClick={() => setActiveTab('flow')} className={`flex-1 min-w-[120px] py-4 text-sm font-bold border-b-2 transition-all flex items-center justify-center gap-2 ${activeTab === 'flow' ? 'border-indigo-500 text-indigo-600 bg-indigo-50/30' : 'border-transparent text-slate-500 hover:bg-slate-50'}`}>
-                        <Play className="w-4 h-4"/> Quy Trình 4 Bước
-                    </button> 
+                        <Play className="w-4 h-4" /> Quy Trình 4 Bước
+                    </button>
                     <button onClick={() => setActiveTab('features')} className={`flex-1 min-w-[120px] py-4 text-sm font-bold border-b-2 transition-all flex items-center justify-center gap-2 ${activeTab === 'features' ? 'border-purple-500 text-purple-600 bg-purple-50/30' : 'border-transparent text-slate-500 hover:bg-slate-50'}`}>
-                        <Zap className="w-4 h-4"/> Tính Năng Hay
-                    </button> 
+                        <Zap className="w-4 h-4" /> Tính Năng Hay
+                    </button>
                     <button onClick={() => setActiveTab('faq')} className={`flex-1 min-w-[120px] py-4 text-sm font-bold border-b-2 transition-all flex items-center justify-center gap-2 ${activeTab === 'faq' ? 'border-rose-500 text-rose-600 bg-rose-50/30' : 'border-transparent text-slate-500 hover:bg-slate-50'}`}>
-                        <HelpCircle className="w-4 h-4"/> Hỏi Đáp & Lỗi
-                    </button> 
-                </div> 
-                
+                        <HelpCircle className="w-4 h-4" /> Hỏi Đáp & Lỗi
+                    </button>
+                </div>
+
                 {/* Content Area */}
                 <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 custom-scrollbar text-sm leading-relaxed text-slate-700">
-                    
+
                     {/* TAB 1: INTRO */}
                     {activeTab === 'intro' && (
                         <div className="space-y-8 animate-in fade-in duration-300">
@@ -241,22 +241,22 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all">
-                                    <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 mb-4"><Brain className="w-6 h-6"/></div>
+                                    <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 mb-4"><Brain className="w-6 h-6" /></div>
                                     <h5 className="font-bold text-lg text-slate-800 mb-2">Thông Minh Hơn</h5>
                                     <p className="text-slate-600">AI hiểu ngữ cảnh, tự động nhận biết tên nhân vật, chiêu thức và xưng hô (Huynh/Muội, Ta/Nàng) tùy theo thể loại truyện.</p>
                                 </div>
                                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all">
-                                    <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mb-4"><Sparkles className="w-6 h-6"/></div>
+                                    <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mb-4"><Sparkles className="w-6 h-6" /></div>
                                     <h5 className="font-bold text-lg text-slate-800 mb-2">Văn Phong Sách In</h5>
                                     <p className="text-slate-600">Không còn văn phong "máy móc". AI được huấn luyện để viết văn chương trôi chảy, giàu cảm xúc, chuẩn định dạng xuất bản.</p>
                                 </div>
                                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all">
-                                    <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 mb-4"><Zap className="w-6 h-6"/></div>
+                                    <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 mb-4"><Zap className="w-6 h-6" /></div>
                                     <h5 className="font-bold text-lg text-slate-800 mb-2">Tự Động Hóa (Auto)</h5>
-                                    <p className="text-slate-600">Chỉ cần 1 cú click chuột. Hệ thống sẽ tự động Phân tích -> Dịch -> Sửa lỗi -> Định dạng mà bạn không cần can thiệp.</p>
+                                    <p className="text-slate-600">Chỉ cần 1 cú click chuột. Hệ thống sẽ tự động Phân tích {'→'} Dịch {'→'} Sửa lỗi {'→'} Định dạng mà bạn không cần can thiệp.</p>
                                 </div>
                                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all">
-                                    <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center text-rose-600 mb-4"><ShieldCheck className="w-6 h-6"/></div>
+                                    <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center text-rose-600 mb-4"><ShieldCheck className="w-6 h-6" /></div>
                                     <h5 className="font-bold text-lg text-slate-800 mb-2">An Toàn & Riêng Tư</h5>
                                     <p className="text-slate-600">Dữ liệu của bạn được lưu ngay trên trình duyệt (Local). Không ai có thể xem nội dung truyện của bạn.</p>
                                 </div>
@@ -268,7 +268,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
                     {activeTab === 'flow' && (
                         <div className="space-y-8 animate-in fade-in duration-300">
                             <h4 className="font-bold text-xl text-indigo-700 mb-4">Quy Trình 4 Bước Đơn Giản</h4>
-                            
+
                             <div className="relative border-l-2 border-slate-200 ml-3 space-y-10 pl-8 py-2">
                                 {/* Step 1 */}
                                 <div className="relative">
@@ -326,10 +326,10 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
                     {activeTab === 'features' && (
                         <div className="space-y-6 animate-in fade-in duration-300">
                             <h4 className="font-bold text-xl text-purple-700 mb-4">Các Công Cụ Quyền Năng</h4>
-                            
+
                             <div className="grid grid-cols-1 gap-4">
                                 <div className="flex gap-4 bg-white p-4 rounded-xl border border-slate-200">
-                                    <div className="p-3 bg-amber-100 text-amber-600 rounded-lg h-fit"><Hammer className="w-5 h-5"/></div>
+                                    <div className="p-3 bg-amber-100 text-amber-600 rounded-lg h-fit"><Hammer className="w-5 h-5" /></div>
                                     <div>
                                         <h5 className="font-bold text-slate-800">Smart Fix (Sửa Lỗi Thông Minh)</h5>
                                         <p className="text-slate-600 mt-1">Nút hình cái búa. Dùng khi file đã dịch xong nhưng vẫn còn sót tiếng Trung/Anh hoặc lỗi xưng hô. Nó sẽ quét và sửa lại mà không cần dịch lại từ đầu.</p>
@@ -337,7 +337,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
                                 </div>
 
                                 <div className="flex gap-4 bg-white p-4 rounded-xl border border-slate-200">
-                                    <div className="p-3 bg-blue-100 text-blue-600 rounded-lg h-fit"><BookOpen className="w-5 h-5"/></div>
+                                    <div className="p-3 bg-blue-100 text-blue-600 rounded-lg h-fit"><BookOpen className="w-5 h-5" /></div>
                                     <div>
                                         <h5 className="font-bold text-slate-800">Tab Tri Thức (Knowledge Base)</h5>
                                         <p className="text-slate-600 mt-1">Nơi chứa "Bộ não" của AI. Bạn có thể vào đây để sửa tên nhân vật (Glossary) hoặc thêm ghi chú ngữ cảnh (Context) nếu AI dịch sai tên.</p>
@@ -345,15 +345,15 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
                                 </div>
 
                                 <div className="flex gap-4 bg-white p-4 rounded-xl border border-slate-200">
-                                    <div className="p-3 bg-rose-100 text-rose-600 rounded-lg h-fit"><RefreshCw className="w-5 h-5"/></div>
+                                    <div className="p-3 bg-rose-100 text-rose-600 rounded-lg h-fit"><RefreshCw className="w-5 h-5" /></div>
                                     <div>
                                         <h5 className="font-bold text-slate-800">Dịch Lại & Cứu Hộ</h5>
                                         <p className="text-slate-600 mt-1">Nếu 1 chương dịch quá tệ? Chọn file đó và nhấn nút "Dịch Lại". Hoặc dùng nút "Cứu Hộ" (Phao cứu sinh) trong Editor để copy prompt và nhờ ChatGPT bên ngoài dịch hộ.</p>
                                     </div>
                                 </div>
-                                
+
                                 <div className="flex gap-4 bg-white p-4 rounded-xl border border-slate-200">
-                                    <div className="p-3 bg-indigo-100 text-indigo-600 rounded-lg h-fit"><Layout className="w-5 h-5"/></div>
+                                    <div className="p-3 bg-indigo-100 text-indigo-600 rounded-lg h-fit"><Layout className="w-5 h-5" /></div>
                                     <div>
                                         <h5 className="font-bold text-slate-800">Editor Song Song</h5>
                                         <p className="text-slate-600 mt-1">Bấm vào tên file để mở trình chỉnh sửa. Bên trái là bản gốc, bên phải là bản dịch. Có chế độ soi lỗi Raw và đồng bộ cuộn.</p>
@@ -367,32 +367,32 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
                     {activeTab === 'faq' && (
                         <div className="space-y-6 animate-in fade-in duration-300">
                             <h4 className="font-bold text-xl text-rose-700 mb-4">Các Lỗi Thường Gặp & Cách Xử Lý</h4>
-                            
+
                             <div className="space-y-4">
                                 <div className="bg-rose-50 p-4 rounded-xl border border-rose-100">
-                                    <h5 className="font-bold text-rose-800 flex items-center gap-2"><AlertCircle className="w-4 h-4"/> Lỗi 429 (Resource Exhausted)</h5>
+                                    <h5 className="font-bold text-rose-800 flex items-center gap-2"><AlertCircle className="w-4 h-4" /> Lỗi 429 (Resource Exhausted)</h5>
                                     <p className="text-slate-700 mt-2 text-sm">
-                                        <b>Nguyên nhân:</b> Google giới hạn số lượt dùng miễn phí mỗi phút/ngày. <br/>
+                                        <b>Nguyên nhân:</b> Google giới hạn số lượt dùng miễn phí mỗi phút/ngày. <br />
                                         <b>Giải pháp:</b> App có tính năng <b>Smart Wait</b>. Nếu thấy huy hiệu trên cùng hiện "Chờ 60s", hãy kiên nhẫn. App đang "ngủ" để hồi phục. Đừng tắt tab.
                                     </p>
                                 </div>
 
                                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                    <h5 className="font-bold text-slate-800 flex items-center gap-2"><HelpCircle className="w-4 h-4"/> Dịch bị sót tên, sai xưng hô?</h5>
+                                    <h5 className="font-bold text-slate-800 flex items-center gap-2"><HelpCircle className="w-4 h-4" /> Dịch bị sót tên, sai xưng hô?</h5>
                                     <p className="text-slate-600 mt-2 text-sm">
-                                        Vào Tab <b>Tri Thức</b> -> Sửa lại trong bảng Từ Điển (Glossary). Sau đó chọn các file bị sai và nhấn <b>Smart Fix</b>.
+                                        Vào Tab <b>Tri Thức</b> {'→'} Sửa lại trong bảng Từ Điển (Glossary). Sau đó chọn các file bị sai và nhấn <b>Smart Fix</b>.
                                     </p>
                                 </div>
 
                                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                    <h5 className="font-bold text-slate-800 flex items-center gap-2"><HelpCircle className="w-4 h-4"/> Có cần treo máy không?</h5>
+                                    <h5 className="font-bold text-slate-800 flex items-center gap-2"><HelpCircle className="w-4 h-4" /> Có cần treo máy không?</h5>
                                     <p className="text-slate-600 mt-2 text-sm">
                                         <b>Có.</b> Vì đây là Web App chạy trên trình duyệt của bạn, bạn cần giữ Tab mở để nó hoạt động. Tuy nhiên, bạn có thể chuyển sang Tab khác làm việc, nó vẫn chạy ngầm.
                                     </p>
                                 </div>
-                                
+
                                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                    <h5 className="font-bold text-slate-800 flex items-center gap-2"><HelpCircle className="w-4 h-4"/> Làm sao để lưu dữ liệu?</h5>
+                                    <h5 className="font-bold text-slate-800 flex items-center gap-2"><HelpCircle className="w-4 h-4" /> Làm sao để lưu dữ liệu?</h5>
                                     <p className="text-slate-600 mt-2 text-sm">
                                         App tự động lưu sau mỗi 2 giây. Nhưng để chắc ăn, hãy nhấn nút <b>Backup (.json)</b> ở Tab <b>Thông Tin</b> để tải file dự phòng về máy tính.
                                     </p>
@@ -400,25 +400,25 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
                             </div>
                         </div>
                     )}
-                </div> 
-            </div> 
-        </div> 
-    ); 
+                </div>
+            </div>
+        </div>
+    );
 };
 
 // ... (FindReplaceModal, ConfirmationModal, ImportModal, PasteModal, ChangelogModal, ToastContainer unchanged)
-export interface FindReplaceModalProps { 
-    isOpen: boolean; 
-    onClose: () => void; 
-    onReplace: (pairs: {find: string, replace: string}[], scope: 'all' | 'selected') => void; 
-    selectedCount: number; 
+export interface FindReplaceModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onReplace: (pairs: { find: string, replace: string }[], scope: 'all' | 'selected') => void;
+    selectedCount: number;
 }
 
 export const FindReplaceModal: React.FC<FindReplaceModalProps> = ({ isOpen, onClose, onReplace, selectedCount }) => {
-    const [pairs, setPairs] = useState<{id: string, find: string, replace: string}[]>([{id: '1', find: '', replace: ''}]);
+    const [pairs, setPairs] = useState<{ id: string, find: string, replace: string }[]>([{ id: '1', find: '', replace: '' }]);
 
     const handleAddPair = () => {
-        setPairs([...pairs, {id: crypto.randomUUID(), find: '', replace: ''}]);
+        setPairs([...pairs, { id: crypto.randomUUID(), find: '', replace: '' }]);
     };
 
     const handleRemovePair = (id: string) => {
@@ -428,7 +428,7 @@ export const FindReplaceModal: React.FC<FindReplaceModalProps> = ({ isOpen, onCl
     };
 
     const handleChange = (id: string, field: 'find' | 'replace', value: string) => {
-        setPairs(pairs.map(p => p.id === id ? {...p, [field]: value} : p));
+        setPairs(pairs.map(p => p.id === id ? { ...p, [field]: value } : p));
     };
 
     if (!isOpen) return null;
@@ -440,23 +440,23 @@ export const FindReplaceModal: React.FC<FindReplaceModalProps> = ({ isOpen, onCl
                     <h3 className="font-bold text-lg text-slate-800">Tìm & Thay Thế Nâng Cao</h3>
                     <button onClick={onClose}><X className="w-5 h-5 text-slate-400" /></button>
                 </div>
-                
+
                 <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4">
                     {pairs.map((pair, index) => (
                         <div key={pair.id} className="flex gap-2 items-start animate-in fade-in slide-in-from-left-4">
                             <span className="text-xs font-bold text-slate-300 mt-3 w-4">{index + 1}.</span>
                             <div className="flex-1 grid grid-cols-2 gap-2">
-                                <input 
-                                    className="w-full p-2 border rounded text-sm bg-slate-50 focus:bg-white transition-colors" 
-                                    placeholder="Tìm kiếm..." 
-                                    value={pair.find} 
-                                    onChange={e => handleChange(pair.id, 'find', e.target.value)} 
+                                <input
+                                    className="w-full p-2 border rounded text-sm bg-slate-50 focus:bg-white transition-colors"
+                                    placeholder="Tìm kiếm..."
+                                    value={pair.find}
+                                    onChange={e => handleChange(pair.id, 'find', e.target.value)}
                                 />
-                                <input 
-                                    className="w-full p-2 border rounded text-sm bg-slate-50 focus:bg-white transition-colors" 
-                                    placeholder="Thay thế bằng..." 
-                                    value={pair.replace} 
-                                    onChange={e => handleChange(pair.id, 'replace', e.target.value)} 
+                                <input
+                                    className="w-full p-2 border rounded text-sm bg-slate-50 focus:bg-white transition-colors"
+                                    placeholder="Thay thế bằng..."
+                                    value={pair.replace}
+                                    onChange={e => handleChange(pair.id, 'replace', e.target.value)}
                                 />
                             </div>
                             {pairs.length > 1 && (
@@ -466,7 +466,7 @@ export const FindReplaceModal: React.FC<FindReplaceModalProps> = ({ isOpen, onCl
                             )}
                         </div>
                     ))}
-                    
+
                     <button onClick={handleAddPair} className="flex items-center gap-2 text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg transition-colors ml-6">
                         <Plus className="w-3 h-3" /> Thêm Dòng
                     </button>
@@ -474,11 +474,11 @@ export const FindReplaceModal: React.FC<FindReplaceModalProps> = ({ isOpen, onCl
 
                 <div className="p-6 border-t border-slate-100 bg-slate-50">
                     <div className="flex flex-col gap-2">
-                        <button onClick={() => { if(pairs.some(p => p.find)) { onReplace(pairs, 'all'); onClose(); } }} className="w-full py-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-bold shadow-lg shadow-sky-200/50 transition-all">
+                        <button onClick={() => { if (pairs.some(p => p.find)) { onReplace(pairs, 'all'); onClose(); } }} className="w-full py-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-bold shadow-lg shadow-sky-200/50 transition-all">
                             Thay Thế Tất Cả
                         </button>
                         {selectedCount > 0 && (
-                            <button onClick={() => { if(pairs.some(p => p.find)) { onReplace(pairs, 'selected'); onClose(); } }} className="w-full py-3 bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 rounded-xl font-bold transition-all">
+                            <button onClick={() => { if (pairs.some(p => p.find)) { onReplace(pairs, 'selected'); onClose(); } }} className="w-full py-3 bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 rounded-xl font-bold transition-all">
                                 Chỉ Thay {selectedCount} File Đang Chọn
                             </button>
                         )}
@@ -536,7 +536,7 @@ export const PasteModal: React.FC<PasteModalProps> = ({ isOpen, onClose, onConfi
                 <textarea className="w-full h-64 p-2 border rounded resize-none" placeholder="Nội dung..." value={content} onChange={e => setContent(e.target.value)} />
                 <div className="flex justify-end gap-3 mt-4">
                     <button onClick={onClose} className="px-4 py-2 text-slate-500 font-bold">Hủy</button>
-                    <button onClick={() => { if(content.trim()) { onConfirm(title, content); onClose(); setTitle(''); setContent(''); } }} className="px-6 py-2 bg-indigo-600 text-white rounded font-bold">Xác Nhận</button>
+                    <button onClick={() => { if (content.trim()) { onConfirm(title, content); onClose(); setTitle(''); setContent(''); } }} className="px-6 py-2 bg-indigo-600 text-white rounded font-bold">Xác Nhận</button>
                 </div>
             </div>
         </div>
@@ -601,28 +601,28 @@ const StoryInfoFields = ({ info, setInfo }: { info: StoryInfo, setInfo: (v: Stor
     return (
         <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-                <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tên Truyện</label><input className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold shadow-sm" value={info.title} onChange={e => setInfo({...info, title: e.target.value})} /></div>
-                <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tác Giả</label><input className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm shadow-sm" value={info.author} onChange={e => setInfo({...info, author: e.target.value})} /></div>
+                <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tên Truyện</label><input className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold shadow-sm" value={info.title} onChange={e => setInfo({ ...info, title: e.target.value })} /></div>
+                <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tác Giả</label><input className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm shadow-sm" value={info.author} onChange={e => setInfo({ ...info, author: e.target.value })} /></div>
             </div>
-            <TagInput label="Ngôn ngữ truyện" icon={<Globe className="w-3.5 h-3.5" />} options={AVAILABLE_LANGUAGES} selected={info.languages} onChange={v => setInfo({...info, languages: v})} />
+            <TagInput label="Ngôn ngữ truyện" icon={<Globe className="w-3.5 h-3.5" />} options={AVAILABLE_LANGUAGES} selected={info.languages} onChange={v => setInfo({ ...info, languages: v })} />
             <div className="grid grid-cols-2 gap-3">
-                <TagInput label="Thể loại" icon={<Tags className="w-3.5 h-3.5" />} options={AVAILABLE_GENRES} selected={info.genres} onChange={v => setInfo({...info, genres: v})} />
-                <TagInput label="Tính cách Main" icon={<Users className="w-3.5 h-3.5" />} options={AVAILABLE_PERSONALITIES} selected={info.mcPersonality} onChange={v => setInfo({...info, mcPersonality: v})} />
+                <TagInput label="Thể loại" icon={<Tags className="w-3.5 h-3.5" />} options={AVAILABLE_GENRES} selected={info.genres} onChange={v => setInfo({ ...info, genres: v })} />
+                <TagInput label="Tính cách Main" icon={<Users className="w-3.5 h-3.5" />} options={AVAILABLE_PERSONALITIES} selected={info.mcPersonality} onChange={v => setInfo({ ...info, mcPersonality: v })} />
             </div>
             <div className="grid grid-cols-2 gap-3">
-                <TagInput label="Bối cảnh" icon={<Palette className="w-3.5 h-3.5" />} options={AVAILABLE_SETTINGS} selected={info.worldSetting} onChange={v => setInfo({...info, worldSetting: v})} />
-                <TagInput label="Lưu phái" icon={<Sword className="w-3.5 h-3.5" />} options={AVAILABLE_FLOWS} selected={info.sectFlow} onChange={v => setInfo({...info, sectFlow: v})} />
+                <TagInput label="Bối cảnh" icon={<Palette className="w-3.5 h-3.5" />} options={AVAILABLE_SETTINGS} selected={info.worldSetting} onChange={v => setInfo({ ...info, worldSetting: v })} />
+                <TagInput label="Lưu phái" icon={<Sword className="w-3.5 h-3.5" />} options={AVAILABLE_FLOWS} selected={info.sectFlow} onChange={v => setInfo({ ...info, sectFlow: v })} />
             </div>
             <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 flex justify-between items-center">
                     <span>Quy tắc bổ sung (Nếu có)</span>
                     <span className="text-[9px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded">Tailor-Made</span>
                 </label>
-                <textarea 
-                    className="w-full h-20 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-600 resize-none outline-none focus:ring-2 focus:ring-sky-200 transition-all shadow-sm" 
-                    placeholder="- Main tên John, không phải Gioan...&#10;- Giữ nguyên tên chiêu thức..." 
-                    value={info.additionalRules || ''} 
-                    onChange={e => setInfo({...info, additionalRules: e.target.value})}
+                <textarea
+                    className="w-full h-20 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-600 resize-none outline-none focus:ring-2 focus:ring-sky-200 transition-all shadow-sm"
+                    placeholder="- Main tên John, không phải Gioan...&#10;- Giữ nguyên tên chiêu thức..."
+                    value={info.additionalRules || ''}
+                    onChange={e => setInfo({ ...info, additionalRules: e.target.value })}
                 />
             </div>
         </div>
@@ -632,7 +632,7 @@ const StoryInfoFields = ({ info, setInfo }: { info: StoryInfo, setInfo: (v: Stor
 const SamplingFields = ({ head, mid, tail, setHead, setMid, setTail }: any) => {
     return (
         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-inner">
-            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-3 flex items-center gap-2"><Layers className="w-3.5 h-3.5"/> Phạm vi lấy mẫu (Lượng chương AI sẽ đọc)</label>
+            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-3 flex items-center gap-2"><Layers className="w-3.5 h-3.5" /> Phạm vi lấy mẫu (Lượng chương AI sẽ đọc)</label>
             <div className="flex items-center gap-4">
                 <div className="flex-1 flex flex-col items-center">
                     <span className="text-[9px] text-slate-400 font-bold mb-1">ĐẦU TRUYỆN</span>
@@ -655,7 +655,7 @@ const SamplingFields = ({ head, mid, tail, setHead, setMid, setTail }: any) => {
 export interface SmartStartModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onConfirm: (useSearch: boolean, additionalRules: string, sampling: {start: number, middle: number, end: number}) => void;
+    onConfirm: (useSearch: boolean, additionalRules: string, sampling: { start: number, middle: number, end: number }) => void;
     onSkip: () => void;
     storyInfo: StoryInfo;
     setStoryInfo: React.Dispatch<React.SetStateAction<StoryInfo>>;
@@ -683,9 +683,9 @@ export const SmartStartModal: React.FC<SmartStartModalProps> = ({ isOpen, onClos
                         <p className="text-sm text-slate-500">Vui lòng không đóng cửa sổ này...</p>
                     </div>
                 )}
-                
+
                 <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-indigo-50/30">
-                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2"><Brain className="w-5 h-5 text-indigo-500"/> Smart Start AI Configuration</h3>
+                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2"><Brain className="w-5 h-5 text-indigo-500" /> Smart Start AI Configuration</h3>
                     <button onClick={onClose}><X className="w-5 h-5 text-slate-400" /></button>
                 </div>
 
@@ -720,8 +720,8 @@ export const SmartStartModal: React.FC<SmartStartModalProps> = ({ isOpen, onClos
                 </div>
 
                 <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3 shrink-0">
-                     <button onClick={onSkip} className="px-6 py-2.5 text-slate-400 font-bold hover:text-slate-600 text-sm">Bỏ Qua</button>
-                     <button onClick={() => onConfirm(useSearch, storyInfo.additionalRules || "", {start: sampleHead, middle: sampleMid, end: sampleTail})} className="flex-1 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl font-bold shadow-lg shadow-indigo-200/50 transition-all flex items-center justify-center gap-2">
+                    <button onClick={onSkip} className="px-6 py-2.5 text-slate-400 font-bold hover:text-slate-600 text-sm">Bỏ Qua</button>
+                    <button onClick={() => onConfirm(useSearch, storyInfo.additionalRules || "", { start: sampleHead, middle: sampleMid, end: sampleTail })} className="flex-1 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl font-bold shadow-lg shadow-indigo-200/50 transition-all flex items-center justify-center gap-2">
                         <Sparkles className="w-5 h-5" /> Kích Hoạt Smart Start
                     </button>
                 </div>
@@ -739,19 +739,19 @@ export const NameAnalysisModal: React.FC<NameAnalysisModalProps> = ({ isOpen, on
     const [useSearch, setUseSearch] = useState(false);
     const [sampleHead, setSampleHead] = useState(100), [sampleMid, setSampleMid] = useState(100), [sampleTail, setSampleTail] = useState(100);
     const [localInfo, setLocalInfo] = useState(storyInfo);
-    
-    useEffect(() => { if(isOpen) setLocalInfo(storyInfo); }, [isOpen, storyInfo]);
-    
+
+    useEffect(() => { if (isOpen) setLocalInfo(storyInfo); }, [isOpen, storyInfo]);
+
     if (!isOpen) return null;
     const percentage = progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0;
-    
+
     return (
         <div className="fixed inset-0 z-[180] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200 relative flex flex-col max-h-[95vh]">
-                
+
                 {/* Use SKELETON LOADER instead of basic Spinner Overlay */}
                 {isAnalyzing && (
-                     <div className="absolute inset-0 bg-white/95 z-[70] flex flex-col p-8 animate-in fade-in duration-300">
+                    <div className="absolute inset-0 bg-white/95 z-[70] flex flex-col p-8 animate-in fade-in duration-300">
                         <div className="w-full text-center mb-8">
                             <div className="flex justify-between text-xs font-bold text-slate-500 mb-2"><span>AI đang phân tích & trích xuất dữ liệu...</span><span>{percentage}%</span></div>
                             <div className="h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200 shadow-inner"><div className="h-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-300" style={{ width: `${percentage}%` }}></div></div>
@@ -765,18 +765,18 @@ export const NameAnalysisModal: React.FC<NameAnalysisModalProps> = ({ isOpen, on
                         </div>
                     </div>
                 )}
-                
+
                 <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-amber-50/30">
-                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2"><Microscope className="w-5 h-5 text-amber-500"/> Deep AI Analysis Panel</h3>
+                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2"><Microscope className="w-5 h-5 text-amber-500" /> Deep AI Analysis Panel</h3>
                     <button onClick={onClose}><X className="w-5 h-5 text-slate-400 hover:text-slate-600" /></button>
                 </div>
 
                 <div className="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-8">
                     {/* ... (Existing Form Content - Unchanged) ... */}
                     <div className="space-y-4">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2"><Zap className="w-3.5 h-3.5"/> Bước 1: Chọn Chế Độ Phân Tích</label>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2"><Zap className="w-3.5 h-3.5" /> Bước 1: Chọn Chế Độ Phân Tích</label>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                             <button onClick={() => setMode('deep_context')} className={`p-4 rounded-2xl border flex items-start gap-4 transition-all text-left group ${mode === 'deep_context' ? 'bg-amber-50 border-amber-300 ring-2 ring-amber-200 shadow-md' : 'bg-white border-slate-200 hover:border-amber-200'}`}>
+                            <button onClick={() => setMode('deep_context')} className={`p-4 rounded-2xl border flex items-start gap-4 transition-all text-left group ${mode === 'deep_context' ? 'bg-amber-50 border-amber-300 ring-2 ring-amber-200 shadow-md' : 'bg-white border-slate-200 hover:border-amber-200'}`}>
                                 <div className={`mt-1 p-2 rounded-xl transition-colors ${mode === 'deep_context' ? 'bg-amber-500 text-white' : 'bg-amber-100 text-amber-600 group-hover:bg-amber-200'}`}><BookOpen className="w-6 h-6" /></div>
                                 <div><div className="font-bold text-sm text-slate-800">Phân Tích Ngữ Cảnh</div><p className="text-[10px] text-slate-500 mt-1 font-medium leading-relaxed">Xây dựng Series Bible (Nhân vật, Xưng hô, Cốt truyện).</p></div>
                             </button>
@@ -788,22 +788,22 @@ export const NameAnalysisModal: React.FC<NameAnalysisModalProps> = ({ isOpen, on
                     </div>
 
                     <div className="space-y-4">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2"><Feather className="w-3.5 h-3.5"/> Bước 2: Cập Nhật Metadata (Tùy chọn)</label>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2"><Feather className="w-3.5 h-3.5" /> Bước 2: Cập Nhật Metadata (Tùy chọn)</label>
                         <StoryInfoFields info={localInfo} setInfo={setLocalInfo} />
                     </div>
 
                     <div className="space-y-4">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2"><ListFilter className="w-3.5 h-3.5"/> Bước 3: Phạm Vi Quét</label>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2"><ListFilter className="w-3.5 h-3.5" /> Bước 3: Phạm Vi Quét</label>
                         <div className="flex bg-slate-100 p-1.5 rounded-2xl gap-1.5 shadow-inner">
-                             <button onClick={() => setScope('smart')} className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${scope === 'smart' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}>Smart Sampling (Nhanh)</button>
-                             <button onClick={() => setScope('range')} className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${scope === 'range' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}>Khoảng cụ thể</button>
-                             <button onClick={() => setScope('full')} className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${scope === 'full' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}>Toàn Bộ</button>
+                            <button onClick={() => setScope('smart')} className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${scope === 'smart' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}>Smart Sampling (Nhanh)</button>
+                            <button onClick={() => setScope('range')} className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${scope === 'range' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}>Khoảng cụ thể</button>
+                            <button onClick={() => setScope('full')} className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${scope === 'full' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}>Toàn Bộ</button>
                         </div>
 
                         {scope === 'smart' && <SamplingFields head={sampleHead} mid={sampleMid} tail={sampleTail} setHead={setSampleHead} setMid={setSampleMid} setTail={setSampleTail} />}
-                        
+
                         {scope === 'range' && (
-                             <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-inner">
+                            <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-inner">
                                 <div className="flex-1 flex flex-col items-center">
                                     <span className="text-[9px] text-slate-400 font-bold mb-1 uppercase">Từ chương</span>
                                     <input type="number" className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-center text-sm font-bold shadow-sm" value={rangeStart} onChange={e => setRangeStart(parseInt(e.target.value) || 1)} min={1} />
@@ -830,7 +830,7 @@ export const NameAnalysisModal: React.FC<NameAnalysisModalProps> = ({ isOpen, on
 
                 <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3 shrink-0">
                     <button onClick={onClose} className="px-6 py-2.5 text-slate-500 font-bold text-sm hover:bg-slate-100 rounded-xl transition-colors">Đóng</button>
-                    <button onClick={() => onConfirm({mode, scope, rangeStart, rangeEnd, updatedStoryInfo: localInfo, useSearch, sampling: {start: sampleHead, middle: sampleMid, end: sampleTail}})} className="px-8 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-2xl font-bold text-sm shadow-lg shadow-orange-200/50 hover:shadow-orange-200/80 transition-all flex items-center gap-2"><PlayCircle className="w-5 h-5" /> Kích Hoạt Phân Tích</button>
+                    <button onClick={() => onConfirm({ mode, scope, rangeStart, rangeEnd, updatedStoryInfo: localInfo, useSearch, sampling: { start: sampleHead, middle: sampleMid, end: sampleTail } })} className="px-8 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-2xl font-bold text-sm shadow-lg shadow-orange-200/50 hover:shadow-orange-200/80 transition-all flex items-center gap-2"><PlayCircle className="w-5 h-5" /> Kích Hoạt Phân Tích</button>
                 </div>
             </div>
         </div>

@@ -8,29 +8,32 @@ interface EditorModalProps {
     file: FileItem;
     onClose: () => void;
     onSave: (fileId: string, newContent: string) => void;
+    onSaveRaw: (fileId: string, newRawContent: string) => void; // From 10.8.9: Save raw content
     storyInfoContext: string;
     dictionary: string;
     promptTemplate: string;
     onAddToGlossary: (raw: string, edit: string) => void;
     onReplaceAll: (find: string, replace: string) => void;
     addToast: (msg: string, type: 'success' | 'error' | 'info' | 'warning') => void;
-    genres: string[]; // NEW: Genres needed for pronoun check
+    genres: string[]; // Genres needed for pronoun check
 }
 
-export const EditorModal: React.FC<EditorModalProps> = ({ 
-    file, onClose, onSave, storyInfoContext, dictionary, promptTemplate, 
+export const EditorModal: React.FC<EditorModalProps> = ({
+    file, onClose, onSave, onSaveRaw, storyInfoContext, dictionary, promptTemplate,
     onAddToGlossary, onReplaceAll, addToast, genres
 }) => {
     const [editContent, setEditContent] = useState<string>(file.translatedContent || "");
+    const [rawContent, setRawContent] = useState<string>(file.content); // From 10.8.9: Editable raw content
+    const [isRawEdited, setIsRawEdited] = useState<boolean>(false); // From 10.8.9: Track if raw was edited
     const [checkMode, setCheckMode] = useState<'none' | 'raw' | 'pronoun'>('none');
-    const [glossarySelection, setGlossarySelection] = useState<{raw: string, edit: string} | null>(null);
-    const [editingGlossary, setEditingGlossary] = useState<{raw: string, edit: string}>({raw: '', edit: ''});
-    
-    // NEW: Focus Mode & Sync Toggle
+    const [glossarySelection, setGlossarySelection] = useState<{ raw: string, edit: string } | null>(null);
+    const [editingGlossary, setEditingGlossary] = useState<{ raw: string, edit: string }>({ raw: '', edit: '' });
+
+    // From 10.9.1: Focus Mode & Sync Toggle
     const [isFocusMode, setIsFocusMode] = useState(false);
     const [isSyncScroll, setIsSyncScroll] = useState(true);
 
-    // NEW: Auto-sync content when file updates (Streaming)
+    // Auto-sync content when file updates (Streaming)
     useEffect(() => {
         if (file.translatedContent && file.translatedContent !== editContent) {
             setEditContent(file.translatedContent);
@@ -42,7 +45,7 @@ export const EditorModal: React.FC<EditorModalProps> = ({
     const highlightOverlayRef = useRef<HTMLDivElement>(null);
     const isSyncingLeft = useRef(false);
     const isSyncingRight = useRef(false);
-    const rawSelectionRef = useRef<string>(""); 
+    const rawSelectionRef = useRef<string>("");
     const editSelectionRef = useRef<string>("");
 
     const handleSyncScroll = (e: React.UIEvent<HTMLDivElement | HTMLTextAreaElement>, isLeft: boolean) => {
@@ -58,10 +61,10 @@ export const EditorModal: React.FC<EditorModalProps> = ({
         const target = isLeft ? editPanelRef.current : rawPanelRef.current;
         const overlay = highlightOverlayRef.current;
         if (!target) return;
-        
+
         // Calculate percentage to handle different heights if needed
         const percentage = source.scrollTop / (source.scrollHeight - source.clientHeight);
-        
+
         if (isLeft) {
             if (isSyncingLeft.current) { isSyncingLeft.current = false; return; }
             isSyncingRight.current = true;
@@ -80,7 +83,7 @@ export const EditorModal: React.FC<EditorModalProps> = ({
         if (text) {
             if (isLeft) rawSelectionRef.current = text;
             else editSelectionRef.current = text;
-            
+
             if (rawSelectionRef.current && editSelectionRef.current) {
                 const newSel = { raw: rawSelectionRef.current, edit: editSelectionRef.current };
                 setGlossarySelection(newSel);
@@ -105,6 +108,13 @@ export const EditorModal: React.FC<EditorModalProps> = ({
         onSave(file.id, editContent);
     };
 
+    // From 10.8.9: Handle Save Raw Content
+    const handleSaveRaw = () => {
+        onSaveRaw(file.id, rawContent);
+        setIsRawEdited(false);
+        addToast("Đã lưu nội dung Raw gốc", "success");
+    };
+
     const handleAddToGlossary = () => {
         if (editingGlossary.raw && editingGlossary.edit) {
             onAddToGlossary(editingGlossary.raw, editingGlossary.edit);
@@ -121,10 +131,10 @@ export const EditorModal: React.FC<EditorModalProps> = ({
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm md:p-4 animate-in fade-in duration-200">
             {/* Full screen on Mobile (h-full w-full rounded-none) */}
             <div className="bg-white dark:bg-slate-900 md:rounded-3xl shadow-2xl w-full h-full md:h-[92vh] max-w-7xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 dark:border-slate-700 ring-1 ring-black/5 rounded-none relative">
-                
+
                 {/* Header - Fixed Flex Layout for Horizontal Scrolling */}
                 <div className={`px-3 py-2 md:px-4 md:py-3 border-b border-slate-100 dark:border-slate-800 flex items-center bg-white dark:bg-slate-900 shrink-0 z-30 gap-3 transition-all duration-300 ${isFocusMode ? '-mt-20 opacity-0 pointer-events-none' : 'opacity-100'}`}>
-                    
+
                     {/* Title Section (Shrinks if needed) */}
                     <div className="flex items-center gap-2 md:gap-3 min-w-[50px] shrink overflow-hidden">
                         <div className="p-1.5 md:p-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl shrink-0 hidden sm:block"><Columns className="w-4 h-4 md:w-5 md:h-5" /></div>
@@ -133,23 +143,22 @@ export const EditorModal: React.FC<EditorModalProps> = ({
                             <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 font-mono truncate hidden sm:block" title={file.name}>{file.name}</p>
                         </div>
                     </div>
-                    
+
                     {/* Spacer to push Toolbar to the right */}
                     <div className="flex-1"></div>
 
                     {/* Toolbar Actions - Scrollable Container */}
-                    {/* Key Fix: max-w-[calc(100%-80px)] ensures it doesn't push title out completely on tiny screens */}
                     <div className="flex gap-2 items-center overflow-x-auto no-scrollbar max-w-[calc(100%-60px)] sm:max-w-none" style={{ scrollbarWidth: 'none' }}>
-                        
+
                         {glossarySelection && (
                             <div className="flex items-center gap-1 mr-1 animate-in fade-in slide-in-from-top-2 bg-slate-50 dark:bg-slate-800 p-1 rounded-lg border border-slate-100 dark:border-slate-700 shrink-0">
                                 <div className="flex flex-col gap-0.5">
-                                    <input className="w-16 md:w-24 text-[10px] border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 rounded px-1" value={editingGlossary.raw} onChange={e => setEditingGlossary(p => ({...p, raw: e.target.value}))} placeholder="Gốc" />
-                                    <input className="w-16 md:w-24 text-[10px] border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 rounded px-1" value={editingGlossary.edit} onChange={e => setEditingGlossary(p => ({...p, edit: e.target.value}))} placeholder="Dịch" />
+                                    <input className="w-16 md:w-24 text-[10px] border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 rounded px-1" value={editingGlossary.raw} onChange={e => setEditingGlossary(p => ({ ...p, raw: e.target.value }))} placeholder="Gốc" />
+                                    <input className="w-16 md:w-24 text-[10px] border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 rounded px-1" value={editingGlossary.edit} onChange={e => setEditingGlossary(p => ({ ...p, edit: e.target.value }))} placeholder="Dịch" />
                                 </div>
                                 <div className="flex flex-col gap-1">
-                                        <button onClick={handleAddToGlossary} className="p-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50" title="Thêm vào từ điển"><Link2 className="w-3 h-3" /></button>
-                                        <button onClick={() => { onReplaceAll(editingGlossary.raw, editingGlossary.edit); setGlossarySelection(null); }} className="p-1 bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/50" title="Thay thế toàn bộ"><Replace className="w-3 h-3" /></button>
+                                    <button onClick={handleAddToGlossary} className="p-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50" title="Thêm vào từ điển"><Link2 className="w-3 h-3" /></button>
+                                    <button onClick={() => { onReplaceAll(editingGlossary.raw, editingGlossary.edit); setGlossarySelection(null); }} className="p-1 bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/50" title="Thay thế toàn bộ"><Replace className="w-3 h-3" /></button>
                                 </div>
                             </div>
                         )}
@@ -159,13 +168,13 @@ export const EditorModal: React.FC<EditorModalProps> = ({
                             <button onClick={() => setCheckMode('raw')} className={`px-2 md:px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap shrink-0 ${checkMode === 'raw' ? 'bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-400 shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}><Bug className="w-3 h-3" /> Raw</button>
                             <button onClick={() => setCheckMode('pronoun')} className={`px-2 md:px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap shrink-0 ${checkMode === 'pronoun' ? 'bg-white dark:bg-slate-700 text-fuchsia-600 dark:text-fuchsia-400 shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}><UserX className="w-3 h-3" /> Xưng Hô</button>
                         </div>
-                        
+
                         {/* Rescue Button */}
                         <button onClick={handleRescueCopy} className="flex px-3 py-2.5 bg-rose-100 dark:bg-rose-900/30 hover:bg-rose-200 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded-xl font-bold transition-all items-center gap-2 text-xs shrink-0" title="Copy gói cứu hộ">
                             <LifeBuoy className="w-4 h-4" /> <span className="hidden sm:inline">Cứu Hộ</span>
                         </button>
-                        
-                        {/* Focus Mode Toggle */}
+
+                        {/* Focus Mode Toggle (from 10.9.1) */}
                         <button onClick={() => setIsFocusMode(true)} className="p-2.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl hover:bg-indigo-100 hover:text-indigo-600 dark:hover:bg-slate-700 transition-all shrink-0" title="Chế độ tập trung (Ẩn công cụ)">
                             <Maximize2 className="w-4 h-4" />
                         </button>
@@ -174,11 +183,11 @@ export const EditorModal: React.FC<EditorModalProps> = ({
                         <button onClick={onClose} className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors shrink-0"><X className="w-5 h-5" /></button>
                     </div>
                 </div>
-                
-                {/* Floating Exit Focus Button */}
+
+                {/* Floating Exit Focus Button (from 10.9.1) */}
                 {isFocusMode && (
-                    <button 
-                        onClick={() => setIsFocusMode(false)} 
+                    <button
+                        onClick={() => setIsFocusMode(false)}
                         className="absolute top-4 right-4 z-50 p-2 bg-slate-900/50 hover:bg-slate-900 text-white rounded-full backdrop-blur-sm transition-all shadow-lg animate-in fade-in"
                         title="Thoát chế độ tập trung"
                     >
@@ -188,42 +197,53 @@ export const EditorModal: React.FC<EditorModalProps> = ({
 
                 {/* Body - Improved layout for scrolling */}
                 <div className="flex-1 bg-slate-50 dark:bg-slate-950 relative overflow-hidden flex flex-col md:flex-row min-h-0">
-                    {/* Raw Panel */}
+                    {/* Raw Panel - NOW EDITABLE (from 10.8.9) */}
                     <div className="flex-1 border-r border-slate-200/60 dark:border-slate-800/60 flex flex-col h-1/2 md:h-full min-h-0 relative group/raw">
-                        {/* Panel Header */}
                         <div className={`px-4 py-2.5 bg-slate-100/80 dark:bg-slate-900/80 border-b border-slate-200/60 dark:border-slate-800/60 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex justify-between items-center backdrop-blur-md shrink-0 transition-all duration-300 ${isFocusMode ? '-mt-10 opacity-0' : 'opacity-100'}`}>
-                            <span className="flex items-center gap-1.5"><FileText className="w-3.5 h-3.5" /> Bản Gốc (Raw)</span>
-                            <div className="flex gap-2">
+                            <span className="flex items-center gap-1.5">
+                                <FileText className="w-3.5 h-3.5" /> Bản Gốc (Raw)
+                                {isRawEdited && <span className="text-[8px] bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full">Đã sửa</span>}
+                            </span>
+                            <div className="flex items-center gap-2">
+                                {isRawEdited && (
+                                    <button onClick={handleSaveRaw} className="text-[10px] text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 font-bold"><Save className="w-3 h-3" /> Lưu Raw</button>
+                                )}
                                 <button onClick={() => setIsSyncScroll(!isSyncScroll)} className={`text-[10px] flex items-center gap-1 ${isSyncScroll ? 'text-indigo-600 font-bold' : 'text-slate-400'}`} title={isSyncScroll ? "Tắt đồng bộ cuộn" : "Bật đồng bộ cuộn"}>
-                                    {isSyncScroll ? <Lock className="w-3 h-3"/> : <Unlock className="w-3 h-3"/>} Sync
+                                    {isSyncScroll ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />} Sync
                                 </button>
-                                <button onClick={async () => { await navigator.clipboard.writeText(file.content); addToast("Đã copy Raw", "success"); }} className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"><Copy className="w-3 h-3"/> Copy</button>
+                                <button onClick={async () => { await navigator.clipboard.writeText(rawContent); addToast("Đã copy Raw", "success"); }} className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"><Copy className="w-3 h-3" /> Copy</button>
                             </div>
                         </div>
-                        
-                        <div 
-                            className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50/30 dark:bg-slate-950/30 custom-scrollbar touch-pan-y"
-                            ref={rawPanelRef}
+                        <textarea
+                            className="flex-1 w-full p-4 md:p-6 bg-slate-50/30 dark:bg-slate-950/30 resize-none outline-none font-mono text-base leading-relaxed text-slate-600 dark:text-slate-400 selection:bg-slate-200 dark:selection:bg-slate-700 custom-scrollbar touch-pan-y pb-32 focus:bg-white dark:focus:bg-slate-900/50 transition-colors"
+                            value={rawContent}
+                            onChange={e => { setRawContent(e.target.value); setIsRawEdited(true); }}
+                            ref={rawPanelRef as React.RefObject<HTMLTextAreaElement>}
                             onScroll={(e) => handleSyncScroll(e, true)}
                             onMouseUp={() => handleSelection(true)}
-                        >
-                            <div className="whitespace-pre-wrap font-mono text-base leading-relaxed text-slate-600 dark:text-slate-400 selection:bg-slate-200 dark:selection:bg-slate-700 pb-32">
-                                {file.content}
+                            spellCheck={false}
+                            placeholder="Nội dung gốc (Raw) - Có thể chỉnh sửa"
+                        />
+                        {/* Floating Save Raw Button (from 10.8.9) */}
+                        {isRawEdited && (
+                            <div className="absolute bottom-6 left-6 flex gap-2 z-20">
+                                <button onClick={handleSaveRaw} className="p-3 bg-emerald-500 hover:bg-emerald-600 text-white shadow-xl rounded-xl font-bold transition-all flex items-center gap-2 text-xs" title="Lưu Raw">
+                                    <Save className="w-4 h-4" /> Lưu Raw
+                                </button>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     {/* Edit Panel */}
                     <div className="flex-1 flex flex-col h-1/2 md:h-full min-h-0 bg-white dark:bg-slate-900 relative group/editor">
-                        {/* Panel Header */}
                         <div className={`px-4 py-2.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-100 dark:border-slate-800 text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider flex justify-between items-center shrink-0 z-20 transition-all duration-300 ${isFocusMode ? '-mt-10 opacity-0' : 'opacity-100'}`}>
                             <span className="flex items-center gap-1.5"><Edit3 className="w-3.5 h-3.5" /> Bản Dịch (Editor)</span>
                         </div>
-                        
+
                         {/* Container for Editor & Overlay */}
                         <div className="flex-1 relative min-h-0">
                             {checkMode !== 'none' && (
-                                <div 
+                                <div
                                     ref={highlightOverlayRef}
                                     className="absolute inset-0 p-4 md:p-6 whitespace-pre-wrap font-sans text-lg leading-8 text-transparent pointer-events-none z-0 overflow-hidden custom-scrollbar pb-32"
                                     aria-hidden="true"
@@ -242,7 +262,7 @@ export const EditorModal: React.FC<EditorModalProps> = ({
                                             const isBad = badPronounIndices.has(index);
                                             return (
                                                 <div key={index} className={isBad ? "bg-fuchsia-300/40 dark:bg-fuchsia-600/40 text-transparent border-l-4 border-fuchsia-500" : ""}>
-                                                    {line || ' '} 
+                                                    {line || ' '}
                                                 </div>
                                             );
                                         })
@@ -258,8 +278,8 @@ export const EditorModal: React.FC<EditorModalProps> = ({
                                 onMouseUp={() => handleSelection(false)}
                                 spellCheck={false}
                             />
-                            
-                            {/* Floating Copy Button (Only show if not in Focus Mode or on hover) */}
+
+                            {/* Floating Copy Button */}
                             <div className={`absolute bottom-6 right-6 flex gap-2 transition-opacity z-20 ${isFocusMode ? 'opacity-0 group-hover/editor:opacity-100' : 'opacity-0 group-hover/editor:opacity-100'}`}>
                                 <button onClick={async () => { await navigator.clipboard.writeText(editContent); addToast("Đã copy", "success"); }} className="p-3 bg-white dark:bg-slate-800 shadow-xl border border-slate-100 dark:border-slate-700 rounded-xl text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:scale-105 transition-all" title="Copy toàn bộ"><Copy className="w-5 h-5" /></button>
                             </div>
