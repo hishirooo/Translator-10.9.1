@@ -5,7 +5,7 @@ import {
     Terminal, FileText, Loader2, AlertCircle,
     Globe, Layers, Activity, Moon, Sun, ChevronUp, ChevronDown,
     Scale, ArrowRightLeft, Database, HardDrive, Maximize, Minimize,
-    Ban, Key, Hourglass
+    Ban, Key, Hourglass, Archive, ArchiveRestore, Trash2
 } from 'lucide-react';
 import { APP_FULL_TITLE, APP_AUTHOR } from '../changelog';
 import { ModelQuota, BatchLimits, RatioLimits } from '../types';
@@ -67,6 +67,10 @@ interface HeaderProps {
     toggleDarkMode?: () => void;
     showApiKeyPool?: boolean;
     setShowApiKeyPool?: (v: boolean) => void;
+    // Data management shortcuts
+    handleBackup?: () => void;
+    handleRestore?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    requestResetApp?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = (props) => {
@@ -185,6 +189,20 @@ export const Header: React.FC<HeaderProps> = (props) => {
                         <Key className="w-3.5 h-3.5" />
                         <span className="text-[10px] font-bold hidden sm:inline">API Keys</span>
                     </button>
+
+                    {/* Data Management Shortcuts */}
+                    <div className="hidden md:flex items-center gap-0.5 px-1 py-0.5 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
+                        <button onClick={props.handleBackup} className="p-1.5 rounded text-slate-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-500 transition-colors" title="Backup (.json)">
+                            <Archive className="w-3.5 h-3.5" />
+                        </button>
+                        <label className="p-1.5 rounded text-slate-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-500 transition-colors cursor-pointer" title="Restore Data">
+                            <ArchiveRestore className="w-3.5 h-3.5" />
+                            <input type="file" accept=".json" className="hidden" onChange={props.handleRestore} />
+                        </label>
+                        <button onClick={props.requestResetApp} className="p-1.5 rounded text-slate-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:text-rose-500 transition-colors" title="Reset Toàn Bộ App">
+                            <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
 
                     <button onClick={props.toggleDarkMode} className="p-1.5 rounded text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-amber-500">
                         {props.isDarkMode ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}

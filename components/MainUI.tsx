@@ -4,7 +4,7 @@ import {
     LayoutDashboard, BookOpen, PenTool,
     Plus, Clipboard, CheckSquare, ArrowRight, Check, Search, Sparkles, Loader2,
     Hammer, ListFilter, Eraser, Bot, RefreshCw, Trash2, FileDown, FileArchive,
-    FileText, Play, Book, Zap, PauseCircle
+    FileText, Play, Book, Zap, PauseCircle, Archive, ArchiveRestore
 } from 'lucide-react';
 import { Header } from './Header';
 import { DashboardPage } from './DashboardPage';
@@ -241,6 +241,9 @@ export const MainUI: React.FC<MainUIProps> = (props) => {
                     toggleDarkMode={props.toggleDarkMode}
                     showApiKeyPool={props.showApiKeyPool}
                     setShowApiKeyPool={props.setShowApiKeyPool}
+                    handleBackup={props.handleBackup}
+                    handleRestore={props.handleRestore}
+                    requestResetApp={props.requestResetApp}
                 />
 
                 <div className="bg-slate-50/80 dark:bg-slate-900/90 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-800/80 shadow-sm pt-1.5 pb-0">
@@ -370,6 +373,25 @@ export const MainUI: React.FC<MainUIProps> = (props) => {
                         <button onClick={props.handleDownloadEpub} className="toolbar-btn group bg-rose-100/50 dark:bg-rose-900/20 text-rose-500 dark:text-rose-400 border-rose-200 dark:border-rose-800 hover:bg-rose-200 dark:hover:bg-rose-900/40">
                             <Book className="w-5 h-5 mb-0.5 group-hover:scale-110 transition-transform" />
                             <span className="text-[9px] font-bold uppercase">EPUB</span>
+                        </button>
+                    </div>
+
+                    <div className="w-px h-8 bg-gradient-to-b from-transparent via-slate-300 dark:via-slate-600 to-transparent shrink-0"></div>
+
+                    {/* DATA Section */}
+                    <div className="flex items-center gap-1 shrink-0 px-2 py-1 bg-violet-50/50 dark:bg-violet-900/10 rounded-xl border border-violet-200/30 dark:border-violet-800/30">
+                        <button onClick={props.handleBackup} className="toolbar-btn group hover:bg-indigo-100 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400" title="Backup (.json)">
+                            <Archive className="w-5 h-5 mb-0.5 group-hover:scale-110 transition-transform" />
+                            <span className="text-[9px] font-bold uppercase">Save</span>
+                        </button>
+                        <label className="toolbar-btn group hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer" title="Restore Data">
+                            <ArchiveRestore className="w-5 h-5 mb-0.5 group-hover:scale-110 transition-transform" />
+                            <span className="text-[9px] font-bold uppercase">Load</span>
+                            <input type="file" accept=".json" className="hidden" onChange={props.handleRestore} />
+                        </label>
+                        <button onClick={props.requestResetApp} className="toolbar-btn group hover:bg-rose-100 dark:hover:bg-rose-900/30 hover:text-rose-600 dark:hover:text-rose-400" title="Reset Toàn Bộ App">
+                            <Trash2 className="w-5 h-5 mb-0.5 group-hover:scale-110 transition-transform" />
+                            <span className="text-[9px] font-bold uppercase">Reset</span>
                         </button>
                     </div>
 
