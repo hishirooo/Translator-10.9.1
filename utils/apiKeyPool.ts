@@ -25,6 +25,7 @@ interface PoolState {
 }
 
 const STORAGE_KEY = 'api_key_pool_v1';
+const ENABLED_KEYS_STORAGE = 'api_key_enabled_v1';
 const RATE_LIMIT_DURATION = 60000; // 60 seconds default
 
 class ApiKeyPool {
@@ -35,6 +36,7 @@ class ApiKeyPool {
 
     // Track which key is currently in use (for UI highlight)
     private activeKeyId: string | null = null;
+    private enabledKeyIds: Set<string> = new Set();
 
     // Detect if running on local (.env.local) or AI Studio
     public readonly isLocal: boolean;
@@ -52,6 +54,7 @@ class ApiKeyPool {
         this.isLocal = hasViteKey;
 
         this.loadFromStorage();
+        this.loadEnabledKeys();
         this.initAccountKey();
     }
 
@@ -127,36 +130,112 @@ class ApiKeyPool {
         }
     }
 
+    private loadEnabledKeys() {
+        try {
+            const stored = localStorage.getItem(ENABLED_KEYS_STORAGE);
+            if (stored) {
+                const ids = JSON.parse(stored);
+                if (Array.isArray(ids)) {
+                    this.enabledKeyIds = new Set(ids);
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('[ApiKeyPool] Failed to load enabled keys:', e);
+        }
+        // Default: all keys enabled (empty set means "all enabled" mode)
+        this.enabledKeyIds = new Set();
+    }
+
+    private saveEnabledKeys() {
+        try {
+            localStorage.setItem(ENABLED_KEYS_STORAGE, JSON.stringify([...this.enabledKeyIds]));
+        } catch (e) {
+            console.warn('[ApiKeyPool] Failed to save enabled keys:', e);
+        }
+    }
+
+    /**
+     * Check if a key is enabled by user
+     * If enabledKeyIds is empty, all keys are enabled (default behavior)
+     */
+    isKeyEnabled(keyId: string): boolean {
+        if (this.enabledKeyIds.size === 0) return true; // Default: all enabled
+        return this.enabledKeyIds.has(keyId);
+    }
+
+    /**
+     * Toggle a key's enabled state
+     */
+    toggleKeyEnabled(keyId: string) {
+        // If switching from "all enabled" mode, populate set with all current keys first
+        if (this.enabledKeyIds.size === 0) {
+            this.state.poolKeys.forEach(k => this.enabledKeyIds.add(k.id));
+        }
+        if (this.enabledKeyIds.has(keyId)) {
+            // Don't allow disabling the last key
+            if (this.enabledKeyIds.size <= 1) return;
+            this.enabledKeyIds.delete(keyId);
+        } else {
+            this.enabledKeyIds.add(keyId);
+        }
+        this.saveEnabledKeys();
+    }
+
+    /**
+     * Enable all keys
+     */
+    enableAllKeys() {
+        this.enabledKeyIds = new Set();
+        this.saveEnabledKeys();
+    }
+
+    /**
+     * Get enabled key IDs (empty set means all enabled)
+     */
+    getEnabledKeyIds(): Set<string> {
+        return new Set(this.enabledKeyIds);
+    }
+
+    /**
+     * Check if all keys are enabled
+     */
+    isAllKeysEnabled(): boolean {
+        return this.enabledKeyIds.size === 0;
+    }
+
     /**
      * Lấy key khả dụng với ưu tiên:
-     * 1. Account Key (nếu không bị rate limit)
-     * 2. Pool Keys theo thứ tự (key nào ít dùng hơn sẽ được ưu tiên)
+     * 1. Chỉ xét các key đã được user enable
+     * 2. Account Key (nếu enabled và không bị rate limit)
+     * 3. Pool Keys theo thứ tự (key nào ít dùng hơn sẽ được ưu tiên)
+     * 4. Fallback: key có thời gian chờ ngắn nhất
      */
     getAvailableKey(): PoolKey | null {
         const now = Date.now();
 
-        // 1. Ưu tiên Account Key
+        // 1. Ưu tiên Account Key (nếu enabled)
         if (this.state.accountKey) {
             const accountPoolKey = this.getAccountKeyAsPoolKey();
-            if (accountPoolKey && accountPoolKey.rateLimitedUntil < now) {
+            if (accountPoolKey && this.isKeyEnabled(accountPoolKey.id) && accountPoolKey.rateLimitedUntil < now) {
                 return accountPoolKey;
             }
         }
 
-        // 2. Fallback to Pool Keys
+        // 2. Fallback to enabled Pool Keys
         const availablePoolKeys = this.state.poolKeys
-            .filter(k => k.rateLimitedUntil < now && k.errorCount < 3)
+            .filter(k => this.isKeyEnabled(k.id) && k.rateLimitedUntil < now && k.errorCount < 3)
             .sort((a, b) => a.requestCount - b.requestCount); // Ưu tiên key ít dùng
 
         if (availablePoolKeys.length > 0) {
             return availablePoolKeys[0];
         }
 
-        // 3. Nếu tất cả đều bị rate limit, trả về key có thời gian chờ ngắn nhất
-        const allKeys = this.getAllKeys();
-        if (allKeys.length === 0) return null;
+        // 3. Nếu tất cả enabled keys đều bị rate limit, trả về key có thời gian chờ ngắn nhất
+        const enabledKeys = this.state.poolKeys.filter(k => this.isKeyEnabled(k.id));
+        if (enabledKeys.length === 0) return null;
 
-        const soonestAvailable = allKeys
+        const soonestAvailable = enabledKeys
             .filter(k => k.errorCount < 3)
             .sort((a, b) => a.rateLimitedUntil - b.rateLimitedUntil)[0];
 
@@ -287,6 +366,11 @@ class ApiKeyPool {
             lastUsed: 0,
             errorCount: 0
         });
+        // Auto-enable new key if in selective mode
+        if (this.enabledKeyIds.size > 0) {
+            this.enabledKeyIds.add(`pool_${index}`);
+            this.saveEnabledKeys();
+        }
         this.saveToStorage();
         return true;
     }

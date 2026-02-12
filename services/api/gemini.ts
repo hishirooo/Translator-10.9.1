@@ -5,18 +5,30 @@ import { apiKeyPool, PoolKey } from '../../utils/apiKeyPool';
 import { MODEL_CONFIGS } from '../../constants';
 
 export const getAiClient = () => {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) {
-        throw new Error("Không tìm thấy API Key. Vui lòng kiểm tra biến môi trường.");
+    // Use the pool's getAvailableKey() which respects enabledKeyIds
+    const keyInfo = apiKeyPool.getAvailableKey();
+
+    if (keyInfo) {
+        const keyDisplayName = apiKeyPool.getKeyDisplayName(keyInfo);
+        const emoji = keyInfo.isAccountKey ? '🔑' : '📦';
+        console.log(`[API] ${emoji} Using: ${keyDisplayName}`);
+
+        // Reset retry counter if switching to a different key
+        if (currentKeyInUse && currentKeyInUse.id !== keyInfo.id) {
+            currentKeyRetryCount = 0;
+        }
+        currentKeyInUse = keyInfo;
+        apiKeyPool.setActiveKey(keyInfo);
+        return new GoogleGenAI({ apiKey: keyInfo.key });
     }
-    // Track account key for per-key request counting
-    currentKeyInUse = apiKeyPool.getAccountKey();
-    apiKeyPool.setActiveKey(currentKeyInUse);
-    return new GoogleGenAI({ apiKey });
+
+    console.error('[API] ❌ No API key available!');
+    throw new Error("Không có API Key khả dụng. Vui lòng thêm key vào Pool hoặc bật key trong cài đặt.");
 };
 
 // Track current key in use for per-key request counting
 let currentKeyInUse: PoolKey | null = null;
+let currentKeyRetryCount = 0;
 
 const SAFETY_SETTINGS = [
     { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },

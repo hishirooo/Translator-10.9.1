@@ -3,7 +3,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
     X, Key, Plus, Trash2, Download, Upload, RefreshCw,
     CheckCircle, AlertCircle, Clock, Ban, Loader2, Copy,
-    FileJson, Trash, ChevronDown, ChevronRight, Zap, Activity
+    FileJson, Trash, ChevronDown, ChevronRight, Zap, Activity,
+    CheckSquare, Square
 } from 'lucide-react';
 import { apiKeyPool, PoolKey } from '../utils/apiKeyPool';
 import { MODEL_CONFIGS } from '../constants';
@@ -30,6 +31,8 @@ export const ApiKeyPoolModal: React.FC<ApiKeyPoolModalProps> = ({ isOpen, onClos
     const [keys, setKeys] = useState<PoolKey[]>([]);
     const [stats, setStats] = useState({ total: 0, active: 0, rateLimited: 0, depleted: 0 });
     const [activeKeyId, setActiveKeyId] = useState<string | null>(null);
+    const [enabledKeyIds, setEnabledKeyIds] = useState<Set<string>>(new Set());
+    const [isAllEnabled, setIsAllEnabled] = useState(true);
     const [showAddForm, setShowAddForm] = useState(false);
     const [newKeyInput, setNewKeyInput] = useState('');
     const [newLabelInput, setNewLabelInput] = useState('');
@@ -44,6 +47,8 @@ export const ApiKeyPoolModal: React.FC<ApiKeyPoolModalProps> = ({ isOpen, onClos
             const allKeys = apiKeyPool.getAllKeys();
             setKeys(allKeys);
             setActiveKeyId(apiKeyPool.getActiveKeyId());
+            setEnabledKeyIds(apiKeyPool.getEnabledKeyIds());
+            setIsAllEnabled(apiKeyPool.isAllKeysEnabled());
             // Calculate stats
             const now = Date.now();
             const stats = {
@@ -67,6 +72,49 @@ export const ApiKeyPoolModal: React.FC<ApiKeyPoolModalProps> = ({ isOpen, onClos
         if (key.length <= 10) return '***';
         return `${key.substring(0, 5)}...${key.substring(key.length - 3)}`;
     };
+
+    // Check if a key is enabled
+    const isKeyEnabled = (keyId: string) => {
+        if (isAllEnabled) return true;
+        return enabledKeyIds.has(keyId);
+    };
+
+    // Toggle key enabled/disabled
+    const handleToggleKey = (keyId: string) => {
+        apiKeyPool.toggleKeyEnabled(keyId);
+        setEnabledKeyIds(apiKeyPool.getEnabledKeyIds());
+        setIsAllEnabled(apiKeyPool.isAllKeysEnabled());
+    };
+
+    // Select All
+    const handleSelectAll = () => {
+        apiKeyPool.enableAllKeys();
+        setEnabledKeyIds(apiKeyPool.getEnabledKeyIds());
+        setIsAllEnabled(true);
+    };
+
+    // Unselect All (keep only first key)
+    const handleUnselectAll = () => {
+        if (keys.length === 0) return;
+        // Enable only the first key (account key or first pool key)
+        const firstKey = keys[0];
+        keys.forEach(k => {
+            if (apiKeyPool.isAllKeysEnabled()) {
+                apiKeyPool.toggleKeyEnabled(k.id); // This populates the set
+            }
+        });
+        // Now disable all except first
+        keys.forEach(k => {
+            if (k.id !== firstKey.id && apiKeyPool.isKeyEnabled(k.id)) {
+                apiKeyPool.toggleKeyEnabled(k.id);
+            }
+        });
+        setEnabledKeyIds(apiKeyPool.getEnabledKeyIds());
+        setIsAllEnabled(apiKeyPool.isAllKeysEnabled());
+    };
+
+    // Check if all enabled keys are depleted
+    const allEnabledDepleted = keys.length > 0 && keys.filter(k => isKeyEnabled(k.id)).every(k => k.errorCount >= 3 || k.status === 'Depleted');
 
     const handleAddKey = () => {
         if (!newKeyInput.trim()) {
@@ -173,16 +221,18 @@ export const ApiKeyPoolModal: React.FC<ApiKeyPoolModalProps> = ({ isOpen, onClos
         const isDepleted = keyData.status === 'Depleted';
         const isAccountKey = keyData.isAccountKey;
         const isCurrentlyInUse = keyData.id === activeKeyId;
+        const enabled = isKeyEnabled(keyData.id);
 
         return (
             <div className={`
                 relative p-3 rounded-lg border backdrop-blur-sm transition-all duration-200
+                ${!enabled ? 'opacity-40 grayscale' : ''}
                 ${isAccountKey
                     ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-400 dark:border-amber-500/50 ring-1 ring-amber-300 dark:ring-amber-500/30'
-                    : isCurrentlyInUse
-                        ? 'bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 border-cyan-400 dark:border-cyan-500/50 ring-2 ring-cyan-400 dark:ring-cyan-500/50 animate-pulse'
+                    : isCurrentlyInUse && enabled
+                        ? 'bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 border-cyan-400 dark:border-cyan-500/50 ring-2 ring-cyan-400 dark:ring-cyan-500/50'
                         : isDepleted
-                            ? 'bg-slate-100 dark:bg-slate-800/30 border-slate-300 dark:border-slate-700/50 opacity-60'
+                            ? 'bg-slate-100 dark:bg-slate-800/30 border-rose-300 dark:border-rose-700/50'
                             : isRateLimited
                                 ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-300 dark:border-amber-500/30'
                                 : 'bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-600/50 hover:border-cyan-400 dark:hover:border-cyan-500/30'}
@@ -190,6 +240,17 @@ export const ApiKeyPoolModal: React.FC<ApiKeyPoolModalProps> = ({ isOpen, onClos
                 {/* Header */}
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
+                        {/* Checkbox */}
+                        <button
+                            onClick={(e) => { e.stopPropagation(); handleToggleKey(keyData.id); }}
+                            className={`flex-shrink-0 p-0.5 rounded transition-colors ${enabled
+                                ? 'text-cyan-500 dark:text-cyan-400 hover:text-cyan-600'
+                                : 'text-slate-300 dark:text-slate-600 hover:text-slate-400'
+                                }`}
+                            title={enabled ? 'Bỏ chọn key này' : 'Chọn key này'}
+                        >
+                            {enabled ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                        </button>
                         {isAccountKey ? (
                             <>
                                 <span className="flex-shrink-0 text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider bg-amber-100 dark:bg-amber-500/20 px-1.5 py-0.5 rounded">
@@ -385,9 +446,37 @@ export const ApiKeyPoolModal: React.FC<ApiKeyPoolModalProps> = ({ isOpen, onClos
 
                 {/* Keys Section Header */}
                 <div className="flex-shrink-0 px-5 py-3 flex items-center justify-between border-b border-slate-100 dark:border-slate-700/30">
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                        <Activity className="w-3.5 h-3.5" />
-                        API KEYS & USAGE ({keys.length})
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            <Activity className="w-3.5 h-3.5" />
+                            API KEYS & USAGE ({keys.length})
+                        </div>
+                        {/* Select All / Unselect All Buttons */}
+                        {keys.length > 0 && (
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={handleSelectAll}
+                                    className={`flex items-center gap-1 px-2 py-1 text-[10px] font-bold rounded transition-colors ${isAllEnabled
+                                        ? 'text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-200 dark:border-cyan-500/20'
+                                        : 'text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600/50 hover:bg-cyan-50 dark:hover:bg-cyan-500/10'
+                                        }`}
+                                    title={isAllEnabled ? 'Tất cả key đã được chọn' : 'Chọn tất cả'}
+                                >
+                                    <CheckSquare className="w-3 h-3" />
+                                    {isAllEnabled ? '✓ ALL' : 'SELECT ALL'}
+                                </button>
+                                {isAllEnabled && keys.length > 1 && (
+                                    <button
+                                        onClick={handleUnselectAll}
+                                        className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold rounded transition-colors text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600/50 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-500"
+                                        title="Bỏ chọn tất cả (giữ lại key đầu tiên)"
+                                    >
+                                        <Square className="w-3 h-3" />
+                                        UNSELECT
+                                    </button>
+                                )}
+                            </div>
+                        )}
                     </div>
                     <button
                         onClick={() => setShowAddForm(!showAddForm)}
